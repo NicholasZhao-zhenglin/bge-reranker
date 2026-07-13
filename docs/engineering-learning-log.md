@@ -151,3 +151,17 @@
 - 结论：在这组样例中，模型能够将相关文本排在无关文本之前；reranker 的核心用途是比较同一个 query 下多个 passage 的相关性分数。
 - 性能观察：两次延迟分别为约 `170.85ms` 和 `559.25ms`，延迟会受 GPU 预热、显存状态、系统负载和 CUDA 调度影响，不能用相关性分数解释。
 - 可迁移经验：判断排序模型是否有效，优先做控制变量实验——固定 query，只替换候选文本，再比较模型分数和排序结果。
+
+### 2026-07-13｜实验：C-MTEB T2Reranking LoRA 单 epoch 训练
+
+- 目标：在本机 RTX 4060 Laptop 8GB 上完整体验一次 reranker LoRA 微调，并监测 Loss、吞吐、内存、显存和温度。
+- 数据：过滤无正样本或无负样本的无效 query 后，固定划分为 4000 条训练、1000 条验证、908 条测试；本轮训练集展开为 66,214 个 query-passage pair。
+- 配置：`bge-reranker-v2-m3`，LoRA `r=8`、`alpha=16`、`dropout=0.1`，目标模块为 `query/key/value`；`batch_size=8`、梯度累积 2、有效 batch 16、最大长度 256、1 epoch，共 4,139 个优化 step。
+- 预检：batch 4 + 梯度检查点的首次 smoke test 在梯度缩放阶段出现 `Attempting to unscale FP16 gradients`；根因是 LoRA 可训练参数仍为 FP16。将可训练参数转换为 FP32 并加入回归测试后恢复正常。
+- 批量选择：batch 8、梯度累积 2、关闭梯度检查点时峰值 PyTorch 显存约 2.82GB，速度优于 batch 16，因此正式训练采用该配置并保留显存余量。
+- 训练结果：完整 epoch 耗时约 25.19 分钟，吞吐约 43.81 pair/s；前期 Loss 均值 0.899236，近期均值 0.567661，相对下降 36.87%，最终 batch Loss 0.563576。
+- 资源监测：训练时系统显存占用约 3.9GB，系统内存约 68%–70%，GPU 利用率多为 93%–98%，温度多为 75–82°C；未发生 OOM、NaN/Inf、持续 Loss 发散或资源阈值告警。
+- 验证结果：MRR 0.830018，Hit@1 0.724，Hit@3 0.922，Hit@5 0.972，Hit@10 0.995；nDCG@1 0.724，nDCG@3 0.700590，nDCG@5 0.710757，nDCG@10 0.772629。
+- 产物：LoRA adapter 与 tokenizer 保存于 `outputs/c-mteb-lora-epoch1/adapter`，训练事件与汇总分别保存为 `training_metrics.jsonl` 和 `training_summary.json`；模型产物由 `.gitignore` 排除，不提交到 Git。
+- 评估边界：上述数值来自验证集，不能与先前 908 条测试集 baseline 直接计算提升。验证集用于选择 epoch 和超参数；模型选择完成后，才在冻结测试集上做一次最终前后对比。
+- 结论：当前配置能在本机稳定完成单 epoch LoRA 训练，Loss 有明确下降，资源仍有安全余量；是否真正改善泛化排序能力，需要同一测试集上的微调前后指标才能确认。
