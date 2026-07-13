@@ -1,0 +1,20 @@
+# Local environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.idea/
+
+# Model weights are downloaded locally and are not source code.
+models/
+
+# Large downloaded/generated dataset artifacts stay local.
+data/external/**/*.parquet
+data/experiments/**/train.jsonl
+data/experiments/**/validation.jsonl
+data/experiments/**/test.jsonl
+data/experiments/**/baseline_rankings.jsonl
+
+# Local secrets and logs
+.env
+*.log

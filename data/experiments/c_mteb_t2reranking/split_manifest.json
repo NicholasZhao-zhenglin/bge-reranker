@@ -1,0 +1,10 @@
+{
+  "source": "D:\\bge_reranker\\data\\external\\c_mteb_t2reranking\\dev-00000-of-00001.parquet",
+  "seed": 42,
+  "source_rows": 6129,
+  "filtered_rows_without_both_classes": 221,
+  "filter_policy": "keep only rows with at least one positive and one negative",
+  "train_size": 4000,
+  "validation_size": 1000,
+  "test_size": 908
+}

@@ -1,0 +1,25 @@
+{
+  "mrr": 0.7913020991490161,
+  "recall_at_1": 0.10721026517177316,
+  "ndcg_at_1": 0.6574889867841409,
+  "recall_at_3": 0.2945230475890242,
+  "ndcg_at_3": 0.6458681179656068,
+  "recall_at_5": 0.4663648402517249,
+  "ndcg_at_5": 0.6606769635293245,
+  "recall_at_10": 0.7908728058287269,
+  "ndcg_at_10": 0.7382065558255098,
+  "test_queries": 908,
+  "candidate_pairs": 14798,
+  "elapsed_seconds": 221.648,
+  "pairs_per_second": 66.76,
+  "model_path": "D:\\bge_reranker\\models\\bge-reranker-v2-m3",
+  "device": "cuda",
+  "batch_size": 8,
+  "max_length": 512,
+  "seed": 42,
+  "split_sizes": {
+    "train": 4000,
+    "validation": 1000,
+    "test": 908
+  }
+}
