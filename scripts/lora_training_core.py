@@ -5,6 +5,13 @@ from __future__ import annotations
 import math
 
 
+def cast_trainable_parameters_to_fp32(model) -> None:
+    """Keep frozen base weights compact while making scaled gradients safe."""
+    for parameter in model.parameters():
+        if parameter.requires_grad:
+            parameter.data = parameter.data.float()
+
+
 def flatten_rows(rows: list[dict]) -> list[tuple[str, str, float]]:
     """Convert grouped reranking rows into labeled query-passage pairs."""
     pairs: list[tuple[str, str, float]] = []

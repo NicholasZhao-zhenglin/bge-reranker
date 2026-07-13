@@ -1,6 +1,13 @@
 import unittest
 
-from scripts.lora_training_core import flatten_rows, loss_trend, optimizer_steps_per_epoch
+import torch
+
+from scripts.lora_training_core import (
+    cast_trainable_parameters_to_fp32,
+    flatten_rows,
+    loss_trend,
+    optimizer_steps_per_epoch,
+)
 
 
 class LoRATrainingCoreTests(unittest.TestCase):
@@ -30,6 +37,14 @@ class LoRATrainingCoreTests(unittest.TestCase):
         self.assertEqual(trend["early_average"], 1.0)
         self.assertEqual(trend["recent_average"], 0.5)
         self.assertEqual(trend["relative_change"], -0.5)
+
+    def test_cast_trainable_parameters_keeps_frozen_weights_in_fp16(self):
+        model = torch.nn.Sequential(torch.nn.Linear(2, 2), torch.nn.Linear(2, 1)).half()
+        for parameter in model[0].parameters():
+            parameter.requires_grad = False
+        cast_trainable_parameters_to_fp32(model)
+        self.assertEqual(model[0].weight.dtype, torch.float16)
+        self.assertEqual(model[1].weight.dtype, torch.float32)
 
 
 if __name__ == "__main__":

@@ -18,3 +18,6 @@ data/experiments/**/baseline_rankings.jsonl
 # Local secrets and logs
 .env
 *.log
+
+# LoRA adapters, checkpoints, and runtime metrics are generated locally.
+outputs/
