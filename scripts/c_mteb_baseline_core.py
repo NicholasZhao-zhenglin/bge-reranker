@@ -94,3 +94,23 @@ def aggregate_metrics(per_query: list[dict[str, float]]) -> dict[str, float]:
         raise ValueError("cannot aggregate an empty evaluation")
     keys = per_query[0].keys()
     return {key: sum(row[key] for row in per_query) / len(per_query) for key in keys}
+
+
+def compare_metrics(baseline: dict, candidate: dict) -> dict[str, dict[str, float]]:
+    """Compare shared ranking metrics while ignoring counts and runtime metadata."""
+    metric_prefixes = ("mrr", "recall_at_", "hit_rate_at_", "ndcg_at_")
+    comparison: dict[str, dict[str, float]] = {}
+    for key in baseline.keys() & candidate.keys():
+        if not key.startswith(metric_prefixes):
+            continue
+        baseline_value = float(baseline[key])
+        candidate_value = float(candidate[key])
+        absolute_change = candidate_value - baseline_value
+        relative_change = absolute_change / baseline_value * 100 if baseline_value else 0.0
+        comparison[key] = {
+            "baseline": baseline_value,
+            "lora": candidate_value,
+            "absolute_change": absolute_change,
+            "relative_change_percent": relative_change,
+        }
+    return dict(sorted(comparison.items()))
