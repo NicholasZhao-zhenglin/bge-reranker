@@ -14,6 +14,18 @@
 - 结论：项目现在具备第一个可回溯提交点，后续每个逻辑改动应单独提交。
 - 我应该学会：Git 提交应保存代码和实验配置；大型模型、数据和生成结果应通过下载脚本或 manifest 重建，而不是全部塞进仓库。
 
+### 2026-07-13｜步骤：完成 C-MTEB 原始模型 baseline
+
+- 目标：在固定测试集上记录 LoRA 微调前的可比较结果。
+- 做了什么：使用本地 `bge-reranker-v2-m3` 对 908 条可评估 query 的 14,798 个 query-passage pair 打分，并保存 Recall、Top-k hit rate、MRR 和 nDCG。
+- 观察到的事实：`hit_rate@1=0.657489`、`hit_rate@3=0.910793`、`hit_rate@5=0.969163`、`MRR=0.791302`、`nDCG@10=0.738207`。
+- 为什么这样做：后续 LoRA 模型必须使用相同测试集和指标，才能判断是否真正提升。
+- 考虑过的替代方案及取舍：只报告 Recall@1 会低估“Top-1 是否命中正例”，因为一个 query 可能有多个 positive；因此额外报告 `hit_rate@k`，其中 `hit_rate@1` 才是本实验的 Top-1 命中率。
+- 遇到的问题/失败尝试：原始数据中 127 条没有 positive、94 条没有 negative；这些 221 条无法计算标准 reranking 指标，已过滤并记录在 split manifest 中。
+- 如何验证：baseline 脚本运行成功，输出写入 `data/experiments/c_mteb_t2reranking/baseline_metrics.json`；核心指标测试通过。
+- 结论：baseline 已冻结，后续训练不能修改这 908 条测试 query。
+- 我应该学会：Recall@k 与 hit rate@k 不完全相同；多正例数据中，Recall 衡量命中了多少正例，hit rate 衡量是否至少命中一个正例。
+
 ## 项目目标与背景
 
 先在本地运行 `bge-reranker-v2-m3`，理解 reranker 的输入、输出和推理过程，为后续 LoRA 微调建立基线。
